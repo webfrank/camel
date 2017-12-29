@@ -34,15 +34,22 @@ public class QueryCommand extends AbstractDdbCommand {
 
     @Override
     public void execute() {
-        QueryResult result = ddbClient.query(new QueryRequest()
-                .withTableName(determineTableName())
-                .withAttributesToGet(determineAttributeNames())
-                .withConsistentRead(determineConsistentRead())
-                .withExclusiveStartKey(determineStartKey())
-                .withKeyConditions(determineKeyConditions())
-                .withExclusiveStartKey(determineStartKey())
-                .withLimit(determineLimit())
-                .withScanIndexForward(determineScanIndexForward()));
+        QueryRequest query = new QueryRequest()
+        .withTableName(determineTableName())
+        .withAttributesToGet(determineAttributeNames())
+        .withConsistentRead(determineConsistentRead())
+        .withExclusiveStartKey(determineStartKey())
+        .withKeyConditions(determineKeyConditions())
+        .withExclusiveStartKey(determineStartKey())
+        .withLimit(determineLimit())
+        .withScanIndexForward(determineScanIndexForward());
+
+        // Check if we have set an Index Name
+        if(exchange.getIn().getHeader(DdbConstants.INDEX_NAME, String.class) != null) {
+            query.withIndexName(exchange.getIn().getHeader(DdbConstants.INDEX_NAME, String.class));
+        }
+
+        QueryResult result = ddbClient.query(query);
         
         Map tmp = new HashMap<>();
         tmp.put(DdbConstants.ITEMS, result.getItems());
